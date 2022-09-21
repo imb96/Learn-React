@@ -1,6 +1,7 @@
 import { useRef, useCallback, useState } from "react";
+import produce from "immer";
 
-function App() {
+const App = () => {
   const nextId = useRef(1);
   const [form, setForm] = useState({
     name: "",
@@ -10,18 +11,19 @@ function App() {
     array: [],
     uselessValue: null,
   });
-
+  // input 수정을 위한 함수
   const onChange = useCallback(
     (e) => {
       const { name, value } = e.target;
-      setForm({
-        ...form,
-        [name]: [value],
-      });
+      setForm(
+        produce(form, (draft) => {
+          draft[name] = value;
+        })
+      );
     },
     [form]
   );
-
+  // form 등록을 위한 함수
   const onSubmit = useCallback(
     (e) => {
       e.preventDefault();
@@ -30,11 +32,13 @@ function App() {
         name: form.name,
         username: form.username,
       };
-      setData({
-        ...data,
-        array: data.array.concat(info),
-      });
-
+      // array에 새 항목 등록
+      setData(
+        produce(data, (draft) => {
+          draft.array.push(info);
+        })
+      );
+      //form 초기화
       setForm({
         name: "",
         username: "",
@@ -43,13 +47,17 @@ function App() {
     },
     [data, form.name, form.username]
   );
-
+  // 항목을 삭제하는 함수
   const onRemove = useCallback(
     (id) => {
-      setData({
-        ...data,
-        array: data.array.filter((info) => info.id !== id),
-      });
+      setData(
+        produce(data, (draft) => {
+          draft.array.splice(
+            draft.array.findIndex((info) => info.ud === id),
+            1
+          );
+        })
+      );
     },
     [data]
   );
@@ -82,6 +90,6 @@ function App() {
       </div>
     </div>
   );
-}
+};
 
 export default App;
